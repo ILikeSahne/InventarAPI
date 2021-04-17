@@ -1,2 +1,2 @@
 # IventarAPI
-Inventar App - API
+InventarApp - API
