@@ -1,4 +1,2 @@
-# API
-BulmeInventarApp - API
-
-Nestler
+# IventarAPI
+InventarApp - API
