@@ -1,0 +1,13 @@
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\bin\Debug\netcoreapp3.1\InventarAPI.exe
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\bin\Debug\netcoreapp3.1\InventarAPI.deps.json
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\bin\Debug\netcoreapp3.1\InventarAPI.runtimeconfig.json
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\bin\Debug\netcoreapp3.1\InventarAPI.runtimeconfig.dev.json
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\bin\Debug\netcoreapp3.1\InventarAPI.dll
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\bin\Debug\netcoreapp3.1\InventarAPI.pdb
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\obj\Debug\netcoreapp3.1\InventarAPI.csprojAssemblyReference.cache
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\obj\Debug\netcoreapp3.1\InventarAPI.AssemblyInfoInputs.cache
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\obj\Debug\netcoreapp3.1\InventarAPI.AssemblyInfo.cs
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\obj\Debug\netcoreapp3.1\InventarAPI.csproj.CoreCompileInputs.cache
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\obj\Debug\netcoreapp3.1\InventarAPI.dll
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\obj\Debug\netcoreapp3.1\InventarAPI.pdb
+E:\Schule\Diplom\API\InventarAPI\InventarAPI\InventarAPI\obj\Debug\netcoreapp3.1\InventarAPI.genruntimeconfig.cache
