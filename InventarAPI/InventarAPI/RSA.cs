@@ -7,35 +7,36 @@ namespace InventarAPI
 {
     class RSA
     {
-        private const int keySize = 1024;
-
         private RSACryptoServiceProvider rsa;
 
         /// <summary>
         /// Public key for encryption
         /// </summary>
-        public byte[] PublicKey { get; }
+        public string PublicKey { get; }
 
         /// <summary>
         /// New RSA encryption/decryption with random generated public/private key
         /// </summary>
         public RSA()
         {
-            rsa = new RSACryptoServiceProvider(keySize);
-            PublicKey = rsa.ExportParameters(false).Modulus;
+            rsa = new RSACryptoServiceProvider();
+            PublicKey = rsa.ToXmlString(false);
         }
 
         /// <summary>
         /// New RSA encryption/decryption with known public key
         /// </summary>
         /// <param name="publicKey">Public Key to encrypt messages with</param>
-        public RSA(byte[] publicKey)
+        public RSA(string publicKey)
         {
-            rsa = new RSACryptoServiceProvider(keySize);
-            RSAParameters rsaParam = rsa.ExportParameters(false);
-            rsaParam.Modulus = publicKey;
-            rsa.ImportParameters(rsaParam);
+            rsa = new RSACryptoServiceProvider();
+            rsa.FromXmlString(publicKey);
             PublicKey = publicKey;
+        }
+
+        public void setPublicKey(string publicKey)
+        {
+            rsa.FromXmlString(publicKey);
         }
 
         /// <summary>
@@ -45,10 +46,8 @@ namespace InventarAPI
         /// <returns></returns>
         public byte[] Encrypt(byte[] _data)
         {
-            _data = new byte[61];
-            for (int i = 0; i < 61; i++)
-                _data[i] = (byte)i;
-            using (RSACryptoServiceProvider newRsa = new RSACryptoServiceProvider(keySize))
+            //MAX Data: 47
+            using (RSACryptoServiceProvider newRsa = new RSACryptoServiceProvider())
             {
                 newRsa.ImportParameters(rsa.ExportParameters(false));
                 return newRsa.Encrypt(_data, true);
@@ -62,7 +61,8 @@ namespace InventarAPI
         /// <returns></returns>
         public byte[] Decrypt(byte[] _data)
         {
-            using (RSACryptoServiceProvider newRsa = new RSACryptoServiceProvider(keySize))
+            Console.WriteLine(_data.Length);
+            using (RSACryptoServiceProvider newRsa = new RSACryptoServiceProvider())
             {
                 newRsa.ImportParameters(rsa.ExportParameters(true));
                 return newRsa.Decrypt(_data, true);

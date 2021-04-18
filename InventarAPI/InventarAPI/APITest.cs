@@ -10,7 +10,7 @@ namespace InventarAPI
 
         static void Main(string[] args)
         {
-            /*InventarAPI api = new InventarAPI(domain, port);
+            InventarAPI api = new InventarAPI(domain, port);
             APIError e = api.OpenConnection();
             if(!e)
             {
@@ -18,8 +18,7 @@ namespace InventarAPI
             } else
             {
                 InventarAPI.WriteLine("Connection established!");
-            }*/
-            
+            }
         }
     }
 }

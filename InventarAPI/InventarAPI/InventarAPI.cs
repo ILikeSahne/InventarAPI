@@ -14,7 +14,7 @@ namespace InventarAPI
         private TcpClient client;
         private NetworkStream stream;
 
-        private RSA encryptRSA, decryptRSA;
+        private RSAHelper rsaHelper;
 
         /// <summary>
         /// Saves values
@@ -52,9 +52,13 @@ namespace InventarAPI
 
         private APIError SetupEncryption()
         {
-
-            return null;
+            rsaHelper = new RSAHelper(stream);
+            RSAError e = rsaHelper.SetupClient();
+            Console.WriteLine(e);
+            return new APIError(APIErrorType.NO_ERROR, null);
         }
+
+        
 
         /// <summary>
         /// Only writes to Console when in DEBUG mode
