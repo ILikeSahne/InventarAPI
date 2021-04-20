@@ -50,6 +50,10 @@ namespace InventarAPI
             }
         }
 
+        /// <summary>
+        /// Setup RSA Encryption, Client side
+        /// </summary>
+        /// <returns></returns>
         private APIError SetupEncryption()
         {
             rsaHelper = new RSAHelper(stream);
@@ -58,8 +62,6 @@ namespace InventarAPI
             rsaHelper.WriteByteArray(en.GetBytes("Hallo, dies ist ein Test, es sollte eigentlich funktionieren. Zumindest hoffe ich das, bitte bitte Bitte!!!!"));
             return new APIError(APIErrorType.NO_ERROR, null);
         }
-
-        
 
         /// <summary>
         /// Only writes to Console when in DEBUG mode

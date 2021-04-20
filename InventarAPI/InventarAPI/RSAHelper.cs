@@ -14,42 +14,61 @@ namespace InventarAPI
 
         private RSA encryptRSA, decryptRSA;
 
+        /// <summary>
+        /// Saves Values
+        /// </summary>
+        /// <param name="_stream">Is used to send/read bytes in the network</param>
         public RSAHelper(NetworkStream _stream)
         {
             stream = _stream;
             ascii = new ASCIIEncoding();
         }
 
+        /// <summary>
+        /// Setup Server side RSA communication
+        /// </summary>
+        /// <returns>Returns a RSAError if the Header was wrong</returns>
         public RSAError SetupServer()
         {
-            // Sending Server public key
-            decryptRSA = new RSA();
-            byte[] serverPublicKey = ascii.GetBytes(decryptRSA.PublicKey);
-            Write2Bytes(serverPublicKey.Length);
-            WriteBytes(serverPublicKey);
-
-            // Reading Client public key
-            int len = Read2Bytes();
-            string clientPublicKey = ascii.GetString(ReadBytes(len));
-            encryptRSA = new RSA(clientPublicKey);
-
-            // Write Response
-            byte[] data = new byte[10];
-            for (int i = 0; i < data.Length; i++)
+            try
             {
-                data[i] = (byte)(i * 4);
+                // Sending Server public key
+                decryptRSA = new RSA();
+                byte[] serverPublicKey = ascii.GetBytes(decryptRSA.PublicKey);
+                Write2Bytes(serverPublicKey.Length);
+                WriteBytes(serverPublicKey);
+
+                // Reading Client public key
+                int len = Read2Bytes();
+                string clientPublicKey = ascii.GetString(ReadBytes(len));
+                encryptRSA = new RSA(clientPublicKey);
+
+                // Write Response
+                byte[] data = new byte[10];
+                for (int i = 0; i < data.Length; i++)
+                {
+                    data[i] = (byte)(i * 4);
+                }
+                WriteEncryptedBytes(data);
+                // Wait for Response
+                byte[] response = ReadDecryptedBytes();
+                for (int i = 0; i < response.Length; i++)
+                {
+                    if (response[i] != data[i] * 4)
+                        return RSAError.RESPONSE_ERROR;
+                }
             }
-            WriteEncryptedBytes(data);
-            // Wait for Response
-            byte[] response = ReadDecryptedBytes();
-            for (int i = 0; i < response.Length; i++)
+            catch (Exception e)
             {
-                if (response[i] != data[i] * 4)
-                    return RSAError.RESPONSE_ERROR;
+                return RSAError.CONNECTION_ERROR;
             }
             return RSAError.NO_ERROR;
         }
 
+        /// <summary>
+        /// Setup Client side RSA communication
+        /// </summary>
+        /// <returns>Returns a RSAError if the Header was wrong</returns>
         public RSAError SetupClient()
         {
             try
@@ -65,25 +84,30 @@ namespace InventarAPI
                 byte[] clientPublicKey = ascii.GetBytes(decryptRSA.PublicKey);
                 Write2Bytes(clientPublicKey.Length);
                 WriteBytes(clientPublicKey);
+
+                // Wait for response
+                byte[] response = ReadDecryptedBytes();
+                for (int i = 0; i < response.Length; i++)
+                {
+                    if (response[i] != i * 4)
+                        return RSAError.RESPONSE_ERROR;
+                    response[i] *= 4;
+                }
+                //Write response
+                WriteEncryptedBytes(response);
             }
             catch (Exception e)
             {
                 return RSAError.CONNECTION_ERROR;
             }
-            // Wait for response
-            byte[] response = ReadDecryptedBytes();
-            for (int i = 0; i < response.Length; i++)
-            {
-                if (response[i] != i * 4)
-                    return RSAError.RESPONSE_ERROR;
-                response[i] *= 4;
-            }
-            //Write response
-            WriteEncryptedBytes(response);
-
             return RSAError.NO_ERROR;
         }
 
+        /// <summary>
+        /// Read a specific amount of unsecured bytes
+        /// </summary>
+        /// <param name="_amount">Amount of bytes</param>
+        /// <returns>Read bytes as an Array</returns>
         private byte[] ReadBytes(int _amount)
         {
             byte[] data = new byte[_amount];
@@ -91,17 +115,29 @@ namespace InventarAPI
             return data;
         }
 
+        /// <summary>
+        /// Reads 2 bytes and returns them as an integer
+        /// </summary>
+        /// <returns>2 read bytes as an integer</returns>
         private int Read2Bytes()
         {
             byte[] data = ReadBytes(2);
             return (data[0] << 8) + data[1];
         }
 
+        /// <summary>
+        /// Writes a specific amount of unsecured bytes
+        /// </summary>
+        /// <param name="_data">Amount bytes</param>
         private void WriteBytes(byte[] _data)
         {
             stream.Write(_data, 0, _data.Length);
         }
 
+        /// <summary>
+        /// Writes the least significant 2 bytes of an integer
+        /// </summary>
+        /// <param name="_x">Integer to write</param>
         private void Write2Bytes(int _x)
         {
             byte[] data = new byte[2];
@@ -110,6 +146,10 @@ namespace InventarAPI
             WriteBytes(data);
         }
 
+        /// <summary>
+        /// Writes a specific amount of secured bytes, but not more than 86
+        /// </summary>
+        /// <param name="_data">Bytes to send</param>
         private void WriteEncryptedBytes(byte[] _data)
         {
             if(_data.Length > MAX_LENGTH)
@@ -120,11 +160,19 @@ namespace InventarAPI
             WriteBytes(encryptRSA.Encrypt(_data));
         }
 
+        /// <summary>
+        /// Reads 128 secured bytes at once, gets cropped downto 86 secured bytes
+        /// </summary>
+        /// <returns>86 or less secured bytes</returns>
         private byte[] ReadDecryptedBytes()
         {
             return decryptRSA.Decrypt(ReadBytes(128));
         }
 
+        /// <summary>
+        /// Writes a specific amount of secured bytes, can be as big as you want
+        /// </summary>
+        /// <param name="_data">Bytes to send</param>
         public void WriteByteArray(byte[] _data)
         {
             int len = _data.Length;
@@ -152,6 +200,10 @@ namespace InventarAPI
             }
         }
 
+        /// <summary>
+        /// Reads a specific amount of secured bytes, can be as big as you want
+        /// </summary>
+        /// <returns>As many bytes as it needs</returns>
         public byte[] ReadByteArray()
         {
             byte[] lenBytes = ReadDecryptedBytes();
