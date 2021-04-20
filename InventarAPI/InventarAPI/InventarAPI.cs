@@ -54,7 +54,8 @@ namespace InventarAPI
         {
             rsaHelper = new RSAHelper(stream);
             RSAError e = rsaHelper.SetupClient();
-            Console.WriteLine(e);
+            ASCIIEncoding en = new ASCIIEncoding();
+            rsaHelper.WriteByteArray(en.GetBytes("Hallo, dies ist ein Test, es sollte eigentlich funktionieren. Zumindest hoffe ich das, bitte bitte Bitte!!!!"));
             return new APIError(APIErrorType.NO_ERROR, null);
         }
 

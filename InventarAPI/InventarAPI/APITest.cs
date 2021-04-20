@@ -19,6 +19,7 @@ namespace InventarAPI
             {
                 InventarAPI.WriteLine("Connection established!");
             }
+            System.Console.ReadKey();
         }
     }
 }
