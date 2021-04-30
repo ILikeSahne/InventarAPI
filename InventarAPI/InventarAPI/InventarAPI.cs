@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -50,16 +51,29 @@ namespace InventarAPI
             }
         }
 
+        public CommandError AddEquipment(string _databaseName, string _user, string _pw, Equipment _e)
+        {
+            AddEquipmentCommand e = new AddEquipmentCommand(_databaseName, _user, _pw, _e);
+            return e.SendCommand(rsaHelper);
+        }
+
         /// <summary>
-        /// Setup RSA Encryption, Client side
+        /// Setup RSA communication
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Is true if there was no Error, if there is one it returns the Error and the Exception</returns>
         private APIError SetupEncryption()
         {
             rsaHelper = new RSAHelper(stream);
             RSAError e = rsaHelper.SetupClient();
-            ASCIIEncoding en = new ASCIIEncoding();
-            rsaHelper.WriteByteArray(en.GetBytes("Hallo, dies ist ein Test, es sollte eigentlich funktionieren. Zumindest hoffe ich das, bitte bitte Bitte!!!!"));
+            if(e != RSAError.NO_ERROR)
+            {
+                return new APIError(APIErrorType.RSA_ERROR, null);
+            }
+            return new APIError(APIErrorType.NO_ERROR, null);
+        }
+
+        public APIError AddEquipment(Equipment _e)
+        {
             return new APIError(APIErrorType.NO_ERROR, null);
         }
 
@@ -103,7 +117,12 @@ namespace InventarAPI
         /// </summary>
         public void PrintError()
         {
-            InventarAPI.WriteLine(ToString());
+            InventarAPI.WriteLine("APIError: " + ToString());
+            StackFrame stackFrame = new StackFrame(1, true);
+            string filename = stackFrame.GetFileName();
+            int line = stackFrame.GetFileLineNumber();
+            string method = stackFrame.GetMethod().ToString();
+            InventarAPI.WriteLine("{0}:{1}, {2}", Path.GetFileName(filename), line, method);
         }
 
         /// <summary>
@@ -132,6 +151,8 @@ namespace InventarAPI
     enum APIErrorType
     {
         NO_ERROR,
-        CONNECTION_ERROR
+        CONNECTION_ERROR,
+        RSA_ERROR,
+        EQUIPMENT_INVAlID
     }
 }

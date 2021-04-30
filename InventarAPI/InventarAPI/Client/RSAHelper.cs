@@ -176,7 +176,6 @@ namespace InventarAPI
         public void WriteByteArray(byte[] _data)
         {
             int len = _data.Length;
-            Console.WriteLine(len);
             byte[] lenBytes = new byte[]
             {
                 (byte) ((len >> 24) & 0xFF),
@@ -190,7 +189,6 @@ namespace InventarAPI
             {
                 int pos = i * MAX_LENGTH;
                 int newDataLenght = Math.Min(MAX_LENGTH, len - pos);
-                Console.WriteLine(newDataLenght);
                 byte[] newData = new byte[newDataLenght];
                 for (int j = 0; j < newDataLenght; j++)
                 {
@@ -208,18 +206,12 @@ namespace InventarAPI
         {
             byte[] lenBytes = ReadDecryptedBytes();
             int len = (lenBytes[0] << 24) + (lenBytes[1] << 16) + (lenBytes[2] << 8) + lenBytes[3];
-            for (int i = 0; i < lenBytes.Length; i++)
-            {
-                Console.WriteLine(lenBytes[i]);
-            }
-            Console.WriteLine(len);
             byte[] data = new byte[len];
             int amount = len / MAX_LENGTH + 1;
             for (int i = 0; i < amount; i++)
             {
                 int pos = i * MAX_LENGTH;
                 byte[] newData = ReadDecryptedBytes();
-                Console.WriteLine(newData.Length);
                 for (int j = 0; j < newData.Length; j++)
                 {
                     data[pos + j] = newData[j];
