@@ -62,7 +62,11 @@ namespace InventarAPI
             Room = _room;
             RoomName = _roomName;
         }
-          
+        
+        /// <summary>
+        /// Converts the Equipment into a json byte array
+        /// </summary>
+        /// <returns>The json byte array</returns>
         public byte[] ToByteArray()
         {
             ASCIIEncoding an = new ASCIIEncoding();
@@ -70,6 +74,11 @@ namespace InventarAPI
             return an.GetBytes(json);
         }
 
+        /// <summary>
+        /// Converts the byte array back into an Equipment
+        /// </summary>
+        /// <param name="_data">The byte array to convert</param>
+        /// <returns>Returns the generated Equipment</returns>
         public Equipment FromByteArray(byte[] _data)
         {
             ASCIIEncoding an = new ASCIIEncoding();

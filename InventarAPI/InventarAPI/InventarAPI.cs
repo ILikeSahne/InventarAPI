@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace InventarAPI
 {
@@ -32,49 +33,71 @@ namespace InventarAPI
         /// Opens a Connection to the Client
         /// </summary>
         /// <returns>Is true if there was no Error, if there is one it returns the Error and the Exception</returns>
-        public APIError OpenConnection()
+        public Error OpenConnection()
         {
             try
             {
-                IPEndPoint endPoint = new IPEndPoint(Dns.GetHostAddresses(domain)[0], port);
                 client = new TcpClient();
-                client.Connect(endPoint);
+                IAsyncResult result =  client.BeginConnect(Dns.GetHostAddresses(domain)[0], port, null, null);
+
+                bool success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(1));
+                client.EndConnect(result);
+                if (!success)
+                {
+                    return new Error(ErrorType.API_ERROR, APIErrorType.CONNECTION_TIMEOUT);
+                }
                 stream = client.GetStream();
-                APIError e = SetupEncryption();
+                Error e = SetupRSA();
                 if (!e)
-                    return e;
-                return new APIError(APIErrorType.NO_ERROR, null);
+                    return new Error(ErrorType.API_ERROR, APIErrorType.RSA_ERROR, e);
+                return Error.NO_ERROR;
             }
             catch (Exception e)
             {
-                return new APIError(APIErrorType.CONNECTION_ERROR, e);
+                return new Error(ErrorType.API_ERROR, APIErrorType.CONNECTION_ERROR, e);
             }
         }
 
-        public CommandError AddEquipment(string _databaseName, string _user, string _pw, Equipment _e)
+        /// <summary>
+        /// Closes the Connection
+        /// </summary>
+        public void CloseConnection()
         {
-            AddEquipmentCommand e = new AddEquipmentCommand(_databaseName, _user, _pw, _e);
-            return e.SendCommand(rsaHelper);
+            if (client != null)
+            {
+                client.Close();
+                client = null;
+            }
+        }
+
+        /// <summary>
+        /// Adds a new Equipment to a Database
+        /// </summary>
+        /// <param name="_databaseName">The Name of the Database</param>
+        /// <param name="_user">The Username</param>
+        /// <param name="_pw">The Password</param>
+        /// <param name="_e">The Equipment to add</param>
+        /// <returns>Returns an Errro if there was a problem with the Command</returns>
+        public Error AddEquipment(string _databaseName, string _user, string _pw, Equipment _e)
+        {
+            AddEquipmentCommand e = new AddEquipmentCommand(new DatabaseUser(_databaseName, _user, _pw), _e);
+            Error error = e.SendCommand(rsaHelper);
+            return new Error(ErrorType.API_ERROR, APIErrorType.COMMAND_FAILED, error);
         }
 
         /// <summary>
         /// Setup RSA communication
         /// </summary>
         /// <returns>Is true if there was no Error, if there is one it returns the Error and the Exception</returns>
-        private APIError SetupEncryption()
+        private Error SetupRSA()
         {
             rsaHelper = new RSAHelper(stream);
-            RSAError e = rsaHelper.SetupClient();
-            if(e != RSAError.NO_ERROR)
+            Error e = rsaHelper.SetupClient();
+            if(!e)
             {
-                return new APIError(APIErrorType.RSA_ERROR, null);
+                return new Error(ErrorType.RSA_ERROR, APIErrorType.RSA_ERROR, e);
             }
-            return new APIError(APIErrorType.NO_ERROR, null);
-        }
-
-        public APIError AddEquipment(Equipment _e)
-        {
-            return new APIError(APIErrorType.NO_ERROR, null);
+            return Error.NO_ERROR;
         }
 
         /// <summary>
@@ -90,69 +113,12 @@ namespace InventarAPI
         }
     }
 
-    class APIError
-    {
-        /// <summary>
-        /// Type of Error
-        /// </summary>
-        public APIErrorType Type { get; }
-        /// <summary>
-        /// Thrown Exception
-        /// </summary>
-        public Exception Exception { get; }
-
-        /// <summary>
-        /// Saves values
-        /// </summary>
-        /// <param name="_type">Type of Error</param>
-        /// <param name="_e">Thrown Exception</param>
-        public APIError(APIErrorType _type, Exception _e)
-        {
-            Type = _type;
-            Exception = _e;
-        }
-
-        /// <summary>
-        /// Writes the Error to the Console (only when in DEBUG mode)
-        /// </summary>
-        public void PrintError()
-        {
-            InventarAPI.WriteLine("APIError: " + ToString());
-            StackFrame stackFrame = new StackFrame(1, true);
-            string filename = stackFrame.GetFileName();
-            int line = stackFrame.GetFileLineNumber();
-            string method = stackFrame.GetMethod().ToString();
-            InventarAPI.WriteLine("{0}:{1}, {2}", Path.GetFileName(filename), line, method);
-        }
-
-        /// <summary>
-        /// Returns the Error as a String:
-        ///     "TypeOfError: ExceptionMessage"
-        /// </summary>
-        /// <returns>"TypeOfError: ExceptionMessage"</returns>
-        public override string ToString()
-        {
-            if (Exception != null)
-                return Type + ": " + Exception.Message;
-            else
-                return Type.ToString();
-        }
-
-        /// <summary>
-        /// Returns true if there was no Error, otherwise it returns false
-        /// </summary>
-        /// <param name="e">ServerError</param>
-        public static implicit operator bool(APIError e)
-        {
-            return e.Type == APIErrorType.NO_ERROR;
-        }
-    }
-
     enum APIErrorType
     {
-        NO_ERROR,
         CONNECTION_ERROR,
+        CONNECTION_TIMEOUT,
         RSA_ERROR,
+        COMMAND_FAILED,
         EQUIPMENT_INVAlID
     }
 }

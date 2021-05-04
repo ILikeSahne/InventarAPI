@@ -6,77 +6,63 @@ namespace InventarAPI
 {
     class AddEquipmentCommand : Command
     {
-        public string DatabaseName { get; set; }
-        public string User { get; set; }
-        public string PW { get; set; }
+        /// <summary>
+        /// Holds the name of the Database and the Login details of the User
+        /// </summary>
+        public DatabaseUser DatabaseUser { get; set; }
+        /// <summary>
+        /// The Equipment to add
+        /// </summary>
         public Equipment Equipment { get; set; }
 
-        public AddEquipmentCommand() : this("", "", "", null) { }
-
-        public AddEquipmentCommand(string _databaseName, string _user, string _pw, Equipment _e) : base(CommandType.ADD_EQUIPMENT, 10, 10)
+        /// <summary>
+        /// Saves values
+        /// </summary>
+        /// <param name="_user">Holds the name of the Database and the Login details of the User</param>
+        /// <param name="_e">The Equipment to add</param>
+        public AddEquipmentCommand(DatabaseUser _user, Equipment _e) : base(10, 10)
         {
-            DatabaseName = _databaseName;
-            User = _user;
-            PW = _pw;
+            DatabaseUser = _user;
             Equipment = _e;
         }
 
-        public override CommandError SendCommandData(RSAHelper _helper)
+        /// <summary>
+        /// Sends the DatabaseName, the User Login and the Equipment to add, to the Server
+        /// </summary>
+        /// <param name="_helper">Is used to send bytes secured</param>
+        /// <returns>Returns an Error if the Command couldn't be send</returns>
+        public override Error SendCommandData(RSAHelper _helper)
         {
             try
             {
                 ASCIIEncoding an = new ASCIIEncoding();
-                _helper.WriteByteArray(an.GetBytes(DatabaseName));
-                _helper.WriteByteArray(an.GetBytes(User));
-                _helper.WriteByteArray(an.GetBytes(PW));
-                byte[] data = Equipment.ToByteArray();
-                _helper.WriteByteArray(data);
+                _helper.WriteByteArray(an.GetBytes(DatabaseUser.DatabaseName));
+                _helper.WriteByteArray(an.GetBytes(DatabaseUser.Username));
+                _helper.WriteByteArray(an.GetBytes(DatabaseUser.Password));
+                byte[] eq = Equipment.ToByteArray();
+                _helper.WriteByteArray(eq);
             }
             catch (Exception e)
             {
-                return new CommandError(CommandErrorType.EQUIPMENT_DATA_CORRUPTED, e);
+                return new Error(ErrorType.COMMAND_ERROR, AddEquipmentCommandError.EQUIPMENT_DATA_CORRUPTED, e);
             }
-            return new CommandError(CommandErrorType.NO_ERROR, null);
+            return Error.NO_ERROR;
         }
 
-        public override CommandError HandleCommandData(RSAHelper _helper)
-        {
-            try
-            {
-                ASCIIEncoding an = new ASCIIEncoding();
-                DatabaseName = an.GetString(_helper.ReadByteArray());
-                User = an.GetString(_helper.ReadByteArray());
-                PW = an.GetString(_helper.ReadByteArray());
-                Equipment = new Equipment().FromByteArray(_helper.ReadByteArray());
-            }
-            catch (Exception e)
-            {
-                return new CommandError(CommandErrorType.EQUIPMENT_DATA_CORRUPTED, e);
-            }
-            return new CommandError(CommandErrorType.NO_ERROR, null);
-        }
-
-        public override CommandError SendCommandResponse(RSAHelper _helper)
-        {
-            byte[] data = { ResponseToID(ValidateEquipment().ToString()) };
-            _helper.WriteByteArray(data);
-            return new CommandError(CommandErrorType.NO_ERROR, null);
-        }
-
-        private EquipmentCommandError ValidateEquipment()
-        {
-            return EquipmentCommandError.NO_ERROR;
-        }
-
+        /// <summary>
+        /// Returns a list of responses from the enum AddEquipmentCommandError
+        /// </summary>
+        /// <returns>Returns all the responses as a string array</returns>
         public override string[] GetResponses()
         {
-            return Enum.GetNames(typeof(EquipmentCommandError));
+            return Enum.GetNames(typeof(AddEquipmentCommandError));
         }
     }
 
-    enum EquipmentCommandError
+    enum AddEquipmentCommandError
     {
         NO_ERROR,
+        DATABASE_DOESNT_EXIST,
         INVALID_NUMBER_ERROR,
         INVALID_SECOND_NUMBER_ERROR,
         INVALID_CURRENT_NUMBER_ERROR,
@@ -88,6 +74,7 @@ namespace InventarAPI
         INVALID_CURRENCY_ERROR,
         INVALID_KFZ_LICENSE_PLATE_ERROR,
         INVALID_ROOM_ERROR,
-        INVALID_ROOM_NAME_ERROR
+        INVALID_ROOM_NAME_ERROR,
+        EQUIPMENT_DATA_CORRUPTED
     }
 }
