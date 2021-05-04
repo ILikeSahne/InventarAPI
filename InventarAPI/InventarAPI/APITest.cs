@@ -5,7 +5,7 @@ namespace InventarAPI
 {
     class APITest
     {
-        private const string domain = "localhost";
+        private const string domain = "80.123.26.217";
         private const int port = 10001;
 
         static void Main(string[] args)

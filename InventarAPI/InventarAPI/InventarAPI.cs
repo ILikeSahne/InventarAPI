@@ -82,7 +82,9 @@ namespace InventarAPI
         {
             AddEquipmentCommand e = new AddEquipmentCommand(new DatabaseUser(_databaseName, _user, _pw), _e);
             Error error = e.SendCommand(rsaHelper);
-            return new Error(ErrorType.API_ERROR, APIErrorType.COMMAND_FAILED, error);
+            if(!error)
+                return new Error(ErrorType.API_ERROR, APIErrorType.COMMAND_FAILED, error);
+            return Error.NO_ERROR;
         }
 
         /// <summary>

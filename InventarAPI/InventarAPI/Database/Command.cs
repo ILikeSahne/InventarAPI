@@ -89,6 +89,8 @@ namespace InventarAPI
         /// <returns>Returns an Error, if there was a problem</returns>
         public Error HandleResponse(int _id)
         {
+            if (_id == 0)
+                return Error.NO_ERROR;
             Console.WriteLine(_id);
             string[] responses = GetResponses();
             for (int i = 0; i < responses.Length; i++)
